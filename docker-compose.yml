@@ -1,19 +1,92 @@
 version: '2'
 services:
-  zookeeper:
-    image: wurstmeister/zookeeper
-    ports:
-      - "2181:2181"
-    restart: unless-stopped
-
-  kafka:
+  kafka-kraft:
     build: .
     ports:
-      - "9092"
+      - "9092:9092"
     environment:
-      DOCKER_API_VERSION: 1.22
-      KAFKA_ADVERTISED_HOST_NAME: 192.168.99.100
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
+      KAFKA_SERVER_CONFIG: |
+        node.id=1
+        process.roles=broker,controller
+        controller.quorum.voters=1@localhost:9093
+        listeners=PLAINTEXT://:9092,CONTROLLER://:9093
+        inter.broker.listener.name=PLAINTEXT
+        advertised.listeners=PLAINTEXT://localhost:9092
+        controller.listener.names=CONTROLLER
+        listener.security.protocol.map=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
+        num.network.threads=3
+        num.io.threads=8
+        socket.send.buffer.bytes=102400
+        socket.receive.buffer.bytes=102400
+        socket.request.max.bytes=104857600
+        log.dirs=/tmp/kraft-combined-logs
+        num.partitions=1
+        num.recovery.threads.per.data.dir=1
+        offsets.topic.replication.factor=1
+        transaction.state.log.replication.factor=1
+        transaction.state.log.min.isr=1
+        log.retention.hours=168
+        log.segment.bytes=1073741824
+        log.retention.check.interval.ms=300000
+      KAFKA_PORT: 9092 # Must have when using KAFKA_CREATE_TOPICS. Must be matched the KAFKA_SERVER_CONFIG
+      KAFKA_CREATE_TOPICS: >
+        testops-tracker:3:1,
+        testops-queue:3:1,
+        testops-admin-queue:3:1,
+        testops-engine-queue:3:1,
+        testops-engine-response-queue:3:1,
+        testops-access-logs:3:1,
+        testops-long-running-queue:3:1,
+        testops-engine-message-queue:3:1,
+        testops-retry-queue:3:1,
+        testops-migration-queue:3:1,
+        testops-low-priority-queue:3:1,
+        testops-high-priority-queue:3:1,
+        testops-katalon-report-parsing-queue:3:1,
+        testops-execution-request-parsing-queue:3:1,
+        testops-test-project-parsing-queue:3:1,
+        testops-test-management-statistics-queue:3:1,
+        testops-jira-integration-queue:3:1,
+        testops-platform-integration-queue:3:1,
+        testops-upload-file-queue:3:1,
+        testops-merge-test-suite-queue:3:1,
+        testops-execution-request-queue:3:1,
+        testops-bdd-execution-queue:3:1,
+        testops-statistics-after-parsing-queue:3:1,
+        testops-test-result-statistics-queue:3:1,
+        testops-mail-execution-queue:3:1,
+        testops-project-statistics-queue:3:1,
+        testops-test-object-project-statistics-queue:3:1,
+        testops-export-file-queue:3:1,
+        testops-testng-execution-queue:3:1,
+        testops-katalon-recorder-queue:3:1,
+        testops-execution-test-result-statistics-queue:3:1,
+        testops-test-result-to-es-queue:3:1,
+        testops-visual-testing-parsing-queue:3:1,
+        testops-visual-testing-pixel-analyze-queue:3:1,
+        testops-visual-testing-pixel-post-analyze-queue:3:1,
+        testops-visual-testing-content-processing-queue:3:1,
+        testops-visual-testing-content-analyze-queue:3:1,
+        testops-visual-testing-content-post-analyze-queue:3:1,
+        testops-visual-testing-layout-processing-queue:3:1,
+        testops-visual-testing-layout-analyze-queue:3:1,
+        testops-visual-testing-layout-post-analyze-queue:3:1,
+        testops-visual-testing-thumbnail-queue:3:1,
+        testops-visual-testing-send-quota-queue:3:1,
+        testops-rca-queue:3:1,
+        testops-abnormal-execution-request-queue:3:1,
+        testops-update-abnormal-statistic-queue:3:1,
+        testops-visual-testing-execution-reimport-queue:3:1,
+        testops-execution-reimport-queue:3:1,
+        testops-visual-testing-pixel-compare-queue:3:1,
+        testops-visual-testing-content-compare-queue:3:1,
+        testops-visual-testing-layout-compare-queue:3:1,
+        testops-visual-testing-update-thumbnail-queue:3:1,
+        testops-rca-test-result-exception-queue:3:1,
+        testops-visual-testing-pixel-processing-queue:3:1,
+        testops-visual-testing-create-keyes-execution-queue:3:1,
+        testops-visual-testing-post-create-execution-queue:3:1,
+        testops-visual-testing-post-processing-queue:3:1,
+        sample-project-queue:3:1,
+        upload-test-result-log-queue:3:1,
+        testops-visual-testing-pixel-preview-processing-queue:3:1
